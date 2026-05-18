@@ -1,0 +1,55 @@
+name: CI Pipeline
+
+# 1. pipeline 需要在 push 時自動執行
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  ci-verification:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-node-version: 22
+          cache: 'npm' # 自動快取 npm 依賴，加速 pipeline
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 2. TypeScript typecheck
+      - name: Run TypeScript typecheck
+        run: npx tsc --noEmit
+
+      # 3. Prettier check 
+      - name: Run Prettier check
+        run: npx prettier --check .
+
+      # 4. Test
+      - name: Run Tests
+        run: |
+            mkdir -p reports
+            npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/vitest-junit.xml
+
+      # 5. 顯示於 GitHub actions 結果頁面
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always() 
+        with:
+          name: Vitest Tests Report            
+          path: reports/vitest-junit.xml              
+          reporter: java-junit      
+
+      - name: Upload test report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+            name: test-report
+            path: reports/
+            if-no-files-found: error          
