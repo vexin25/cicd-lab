@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-node-version: 22
+          node-version: 22
           cache: 'npm' # 自動快取 npm 依賴，加速 pipeline
 
       - name: Install dependencies
@@ -35,7 +35,7 @@ jobs:
       - name: Run Tests
         run: |
             mkdir -p reports
-            npm test -- --reporter=default --reporter=junit --outputFile.junit=reports/vitest-junit.xml
+            npx vitest run --reporter=default --reporter=junit --outputFile=reports/vitest-junit.xml
 
       # 5. 顯示於 GitHub actions 結果頁面
       - name: Test Report
